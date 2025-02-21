@@ -1,0 +1,70 @@
+import streamlit as st # type: ignore
+import pandas as pd # type: ignore
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
+
+# Custom CSS to set background color to blue
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #3498db !important;
+    }
+    .stApp {
+        background-color: #3498db;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Set up the app
+def main():
+    st.title("📚 Study Planner")
+
+    # Session state to store tasks
+    if "tasks" not in st.session_state:
+        st.session_state.tasks = []
+
+    # Input fields
+    with st.form("task_form"):
+        task_name = st.text_input("Task Name:")
+        subject = st.text_input("Subject:")
+        due_date = st.date_input("Due Date:", min_value=datetime.today())
+        priority = st.selectbox("Priority:", ["High", "Medium", "Low"])
+        submitted = st.form_submit_button("Add Task")
+
+        if submitted and task_name:
+            st.session_state.tasks.append({
+                "Task": task_name,
+                "Subject": subject,
+                "Due Date": due_date,
+                "Priority": priority,
+                "Completed": False
+            })
+            st.success(f"Task '{task_name}' added successfully!")
+
+    # Display tasks
+    if st.session_state.tasks:
+        st.subheader("📌 Your Study Tasks")
+        df = pd.DataFrame(st.session_state.tasks)
+        edited_df = st.data_editor(df, key="task_editor", use_container_width=True)
+
+        # Update session state with edited tasks
+        st.session_state.tasks = edited_df.to_dict(orient="records")
+
+    # Summary
+    if st.session_state.tasks:
+        st.subheader("📊 Study Overview")
+        df_summary = pd.DataFrame(st.session_state.tasks)
+        completed_tasks = df_summary[df_summary["Completed"] == True]
+        total_tasks = len(st.session_state.tasks)
+        completion_rate = len(completed_tasks) / total_tasks * 100 if total_tasks > 0 else 0
+        st.metric(label="Completion Rate", value=f"{completion_rate:.2f}%")
+
+if __name__ == "__main__":
+    main()

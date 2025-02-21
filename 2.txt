@@ -1,0 +1,38 @@
+async function addTask() {
+    const subject = document.getElementById("subject");
+    const date = document.getElementById("date");
+    const time = document.getElementById("time");
+    const notes = document.getElementById("notes");
+
+    await fetch("API_URL", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            subject: subject.value,
+            date: date.value,
+            time: time.value,
+            notes: notes.value
+        })
+    });
+
+    // Set reminder alarm
+    const taskTime = new Date(`${date.value}T${time.value}`);
+    const now = new Date();
+    const timeUntilAlarm = taskTime - now;
+    if (timeUntilAlarm > 0) {
+        setTimeout(() => {
+            alert(`⏰ Reminder: Time to study ${subject.value}!`);
+        }, timeUntilAlarm);
+    }
+
+    // Clear fields after adding task
+    subject.value = "";
+    date.value = "";
+    time.value = "";
+    notes.value = "";
+
+    fetchTasks();
+}
+
+document.body.style.backgroundColor = "#3498db"; // Set background to blue
+
